@@ -96,14 +96,23 @@ int do_noquantum(message *m_ptr)
 	}
 
 	rmp = &schedproc[proc_nr_n];
-	if (rmp->priority < MIN_USER_Q) {
-		rmp->priority += 1; /* lower priority */
-	}
+        rmp->used_quantums += 1;
 
-	if ((rv = schedule_process_local(rmp)) != OK) {
-		return rv;
-	}
-	return OK;
+        if( rmp->used_quantums >= 3) {
+                printf("Proceso penalizado: %d\n", proc_nr_n);
+
+                if (rmp->priority < MIN_USER_Q) {
+		         rmp->priority += 1; /* lower priority */
+	        }
+
+                rmp->used_quantums = 0; 
+        }
+
+        if ((rv = schedule_process_local(rmp)) != OK) {
+	         return rv;
+        }
+       	return OK;
+        
 }
 
 /*===========================================================================*
@@ -221,6 +230,8 @@ int do_start_scheduling(message *m_ptr)
 		return rv;
 	}
 	rmp->flags = IN_USE;
+
+        rmp->used_quantums = 0;   
 
 	/* Schedule the process, giving it some quantum */
 	pick_cpu(rmp);
