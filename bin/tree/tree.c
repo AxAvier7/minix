@@ -23,14 +23,18 @@ void tree(const char *route, int level)
 
         char whole_route[1024];
         snprintf(whole_route, sizeof(whole_route), "%s/%s", route, input->d_name);
-        stat(whole_route, &info);
+        lstat(whole_route, &info);
 
         for( int i = 0; i < level; i++ )
         {
             printf("   ");
         }
         printf("--- %s", input->d_name);
-        if(S_ISDIR(info.st_mode))
+        if(S_ISLNK(info.st_mode))
+        {
+            printf("--- %s@\n", input->d_name);    
+        }
+        else if(S_ISDIR(info.st_mode))
         {
             printf("/\n");
             tree(whole_route, level + 1);
