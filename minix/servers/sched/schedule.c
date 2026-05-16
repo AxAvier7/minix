@@ -15,7 +15,7 @@
 
 static unsigned balance_timeout;
 
-#define BALANCE_TIMEOUT	5 /* how often to balance queues in seconds */
+#define BALANCE_TIMEOUT 3 /* how often to balance queues in seconds */
 
 static int schedule_process(struct schedproc * rmp, unsigned flags);
 
@@ -99,7 +99,6 @@ int do_noquantum(message *m_ptr)
         rmp->used_quantums += 1;
 
         if( rmp->used_quantums >= 3) {
-                printf("Proceso penalizado: %d\n", proc_nr_n);
 
                 if (rmp->priority < MIN_USER_Q) {
 		         rmp->priority += 1; /* lower priority */
@@ -368,10 +367,13 @@ void balance_queues(void)
 
 	for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
 		if (rmp->flags & IN_USE) {
-			if (rmp->priority > rmp->max_priority) {
-				rmp->priority -= 1; /* increase priority */
-				schedule_process_local(rmp);
+			if(rmp->used_quantums == 0) {
+				if (rmp->priority > rmp->max_priority) {
+					rmp->priority -= 1; /* increase priority */
+					schedule_process_local(rmp);
+				}
 			}
+			rmp->used_quantums = 0;
 		}
 	}
 
